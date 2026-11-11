@@ -62,20 +62,21 @@ func (s *socket) Receive(data []byte) (int, netip.AddrPort, error) {
 }
 
 func addrPortToSockaddr(addr netip.AddrPort) (unix.Sockaddr, error) {
-	if addr.Addr().Is4() {
+	// Unmap IPv4-mapped IPv6 (::ffff:x.x.x.x) so AF_INET sendto works after ResolveUDPAddr("udp", ...).
+	// Fixes bitmagnet-io/bitmagnet#437 / equivalent to open PR #510.
+	a := addr.Addr().Unmap()
+	if a.Is4() {
 		return &unix.SockaddrInet4{
-			Addr: addr.Addr().As4(),
+			Addr: a.As4(),
 			Port: int(addr.Port()),
 		}, nil
 	}
-
-	if addr.Addr().Is6() {
+	if a.Is6() {
 		return &unix.SockaddrInet6{
-			Addr: addr.Addr().As16(),
+			Addr: a.As16(),
 			Port: int(addr.Port()),
 		}, nil
 	}
-
 	return nil, errors.New("invalid address")
 }
 

@@ -17,7 +17,7 @@ func (c *crawler) reseedBootstrapNodes(ctx context.Context) {
 			return
 		case <-time.After(interval):
 			for _, strAddr := range c.bootstrapNodes {
-				addr, err := net.ResolveUDPAddr("udp", strAddr)
+				addr, err := net.ResolveUDPAddr("udp4", strAddr)
 				if err != nil {
 					c.logger.Warnf("failed to resolve bootstrap node address: %s", err)
 					continue
